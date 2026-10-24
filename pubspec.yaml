@@ -87,3 +87,6 @@ flutter:
     - assets/data/
     - assets/sounds/reto_completado.mp3
     - assets/sounds/Monedas.mp3
+    - assets/sounds/Logro_desbloqueado.mp3
+    - assets/sounds/ui_click.mp3
+    - assets/sounds/ui_transicion.mp3
