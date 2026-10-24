@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
-import 'package:lombriaventura/screens/juegos/alimenta_lombriz_cayendo.dart';
 import 'package:lombriaventura/screens/juegos/selector_nivel_alimenta.dart';
 import 'package:lombriaventura/screens/login_screen.dart';
+import 'package:provider/provider.dart';
 import '../config/theme.dart';
+import '../providers/usuario_provider.dart';
 import '../services/actividad_service.dart';
+import '../services/sound_service.dart';
 import 'chat_ia_screen.dart';
 import 'diario/nueva_entrada.dart';
 import 'juegos/selector_nivel_cayendo.dart';
 import 'juegos/clasifica_residuos.dart';
-import 'juegos/alimenta_la_lombriz.dart';
 import 'tienda/ventas_lombrices.dart';
 import 'tienda/ventas_atomizador.dart';
 import 'tienda/ventas_historial.dart';
@@ -17,12 +18,10 @@ import 'tienda/ventas_humus.dart';
 import 'tienda/capacitacion.dart';
 import '../../services/monedas_service.dart';
 import 'juegos/memorama.dart';
-import 'logros.dart';
 import 'modulo_educativo.dart';
 import '../services/retos_service.dart';
 import 'recordatorios.dart';
 import 'tienda/accesorios_screen.dart';
-import 'avisos.dart';
 import 'tienda/problemas_matematicos.dart';
 import 'perfil_screen.dart';
 import 'progress_screen.dart';
@@ -43,10 +42,14 @@ class _MenuPrincipalState extends State<MenuPrincipal> {
   int _categoriaAbierta = -1;
   int _contadorToques = 0;
   bool _mostrarBanner = true;
+  String _nombreSaludo = 'Lombrikid';
+  bool _nombreResuelto = false;
+  late Future<int> _monedasFuture;
 
   @override
   void initState() {
     super.initState();
+    _monedasFuture = _obtenerMonedas();
     _verificarSesion();
     _actividadService.registrarActividad();
 
@@ -56,6 +59,33 @@ class _MenuPrincipalState extends State<MenuPrincipal> {
     });
 
     _inicializarRecordatorios();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_nombreResuelto) return;
+    _nombreResuelto = true;
+    _nombreSaludo = _leerNombreSaludo();
+  }
+
+  /// Nombre para el saludo: perfil en memoria, si no el guardado al iniciar sesión.
+  String _leerNombreSaludo() {
+    try {
+      final desdeProvider =
+          context.read<UsuarioProvider>().usuario?.nombre.trim() ?? '';
+      if (desdeProvider.isNotEmpty) return desdeProvider;
+    } catch (_) {}
+
+    try {
+      if (Hive.isBoxOpen('configuracion')) {
+        final raw = Hive.box('configuracion').get('usuario_nombre');
+        final nombre = raw?.toString().trim() ?? '';
+        if (nombre.isNotEmpty) return nombre;
+      }
+    } catch (_) {}
+
+    return 'Lombrikid';
   }
 
   Future<void> _inicializarRecordatorios() async {
@@ -126,10 +156,28 @@ class _MenuPrincipalState extends State<MenuPrincipal> {
     );
   }
 
-  void _irAPantalla(Widget pantalla) {
-    Navigator.push(
+  Future<void> _irAPantalla(Widget pantalla) async {
+    await Navigator.push(
       context,
       MaterialPageRoute(builder: (_) => pantalla),
+    );
+    if (!mounted) return;
+    setState(() {
+      _monedasFuture = _obtenerMonedas();
+    });
+  }
+
+  Future<void> _abrirProgreso() async {
+    await _actividadService.registrarActividad();
+    if (!mounted) return;
+    final monedas = await _obtenerMonedas();
+    if (!mounted) return;
+    await _irAPantalla(
+      ProgressScreen(
+        coins: monedas,
+        streakDays: _actividadService.obtenerRacha(),
+        recordDays: _actividadService.obtenerRecordRacha(),
+      ),
     );
   }
 
@@ -162,12 +210,9 @@ class _MenuPrincipalState extends State<MenuPrincipal> {
 
   Future<int> _obtenerMonedas() async {
     try {
-      // ✅ Usar MonedasService en lugar de acceder directamente al box
-      final monedas = MonedasService().obtenerMonedas();
-      print('🪙 Monedas en menú: $monedas');
-      return monedas;
-    } catch (e) {
-      print('Error al obtener monedas: $e');
+      await MonedasService().init();
+      return MonedasService().obtenerMonedas();
+    } catch (_) {
       return 0;
     }
   }
@@ -176,12 +221,10 @@ class _MenuPrincipalState extends State<MenuPrincipal> {
     return GestureDetector(
       onTap: _abrirPanelAdmin,
       child: Row(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Container(
-            width: 40,
-            height: 40,
+            width: 34,
+            height: 34,
             decoration: const BoxDecoration(
               shape: BoxShape.circle,
               color: Colors.white,
@@ -189,8 +232,8 @@ class _MenuPrincipalState extends State<MenuPrincipal> {
             child: ClipOval(
               child: Image.asset(
                 'assets/images/logo_lombriaventura.png',
-                width: 40,
-                height: 40,
+                width: 34,
+                height: 34,
                 fit: BoxFit.contain,
                 errorBuilder: (context, error, stackTrace) {
                   return const Icon(
@@ -202,15 +245,19 @@ class _MenuPrincipalState extends State<MenuPrincipal> {
               ),
             ),
           ),
-          const SizedBox(width: 8),
-          const Text(
-            '¡Hola, Lombrikid!',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
+          const SizedBox(width: 6),
+          Flexible(
+            child: Text(
+              '¡Hola, $_nombreSaludo!',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+                fontFamily: 'Fredoka',
+              ),
             ),
-            overflow: TextOverflow.ellipsis,
           ),
         ],
       ),
@@ -226,7 +273,10 @@ class _MenuPrincipalState extends State<MenuPrincipal> {
       {Widget? customIcon} // 2. Agregamos el widget personalizado como opción
       ) {
     return GestureDetector(
-      onTap: onTap,
+      onTap: () {
+        SoundService.instance.clickUi();
+        onTap();
+      },
       child: Container(
         margin: const EdgeInsets.only(bottom: 6),
         padding: const EdgeInsets.all(10),
@@ -297,6 +347,7 @@ class _MenuPrincipalState extends State<MenuPrincipal> {
 
     return GestureDetector(
       onTap: () {
+        SoundService.instance.transicionMenu();
         setState(() {
           _categoriaAbierta = abierta ? -1 : index;
         });
@@ -326,32 +377,39 @@ class _MenuPrincipalState extends State<MenuPrincipal> {
               child: Row(
                 children: [
                   Container(
-                    width: 60,
-                    height: 60,
+                    width: 64,
+                    height: 64,
                     decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.25),
-                      borderRadius: BorderRadius.circular(16),
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white, width: 2),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.12),
+                          blurRadius: 6,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
                     ),
-                    child: iconImage != null
-                        ? Padding(
-                            padding: const EdgeInsets.all(10),
-                            child: Image.asset(
+                    child: ClipOval(
+                      child: iconImage != null
+                          ? Image.asset(
                               iconImage,
-                              fit: BoxFit.contain,
+                              fit: BoxFit.cover,
                               errorBuilder: (context, error, stackTrace) {
                                 return Icon(
                                   icon ?? Icons.help_outline,
-                                  color: Colors.white,
-                                  size: 34,
+                                  color: color,
+                                  size: 32,
                                 );
                               },
+                            )
+                          : Icon(
+                              icon ?? Icons.help_outline,
+                              color: color,
+                              size: 32,
                             ),
-                          )
-                        : Icon(
-                            icon ?? Icons.help_outline,
-                            color: Colors.white,
-                            size: 34,
-                          ),
+                    ),
                   ),
                   const SizedBox(width: 16),
                   Expanded(
@@ -416,7 +474,10 @@ class _MenuPrincipalState extends State<MenuPrincipal> {
       {Color color = Colors.grey} // Color opcional para los bordes y flecha
       ) {
     return GestureDetector(
-      onTap: onTap,
+      onTap: () {
+        SoundService.instance.clickUi();
+        onTap();
+      },
       child: Container(
         margin: const EdgeInsets.only(bottom: 6),
         padding: const EdgeInsets.all(10),
@@ -605,136 +666,114 @@ class _MenuPrincipalState extends State<MenuPrincipal> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        titleSpacing: 12,
         title: _buildTituloAdmin(),
         actions: [
-          // Mostrar monedas en el AppBar
           FutureBuilder<int>(
-            future: _obtenerMonedas(),
+            future: _monedasFuture,
             builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return Container(
-                  margin: const EdgeInsets.only(right: 8),
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: const SizedBox(
-                    width: 30,
-                    height: 20,
-                    child: Center(
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                );
-              }
-              if (snapshot.hasData && snapshot.data! > 0) {
-                return Container(
-                  margin: const EdgeInsets.only(right: 8),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(20),
-                    //Sombra solida hacia abajo = profundidad 3D
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color(0xFFB8860B),
-                        offset: const Offset(0, 4),
-                        blurRadius: 0,
-                      ),
-                    ],
-                  ),
+              final cargando =
+                  snapshot.connectionState == ConnectionState.waiting;
+              final monedas = snapshot.data ?? 0;
+              return Padding(
+                padding: const EdgeInsets.only(right: 4),
+                child: Center(
                   child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    height: 30,
+                    constraints: const BoxConstraints(minWidth: 30),
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    alignment: Alignment.center,
                     decoration: BoxDecoration(
-                      //Fondo amarillo dorado
                       color: const Color(0xFFFFD700),
-                      borderRadius: BorderRadius.circular(20),
-                      //Borde inferior que refuerza la profundidad
+                      borderRadius: BorderRadius.circular(15),
                       border: Border.all(
-                        color: const Color(0xFFB8860B), // dorado oscuro
-                        width: 1.5,
+                        color: const Color(0xFFB8860B),
+                        width: 1.2,
                       ),
                     ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(
-                          Icons.monetization_on,
-                          color: Color(0xFFB8860B), //icono dorado oscuro
-                          size: 18,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          '${snapshot.data}',
-                          style: const TextStyle(
-                            color: Color(0xFF7B5100), // texto cafe dorado
-                            fontWeight: FontWeight.bold,
-                            fontFamily: 'Fredoka',
-                            fontSize: 14,
+                    child: cargando
+                        ? const SizedBox(
+                            width: 14,
+                            height: 14,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Color(0xFFB8860B),
+                            ),
+                          )
+                        : Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(
+                                Icons.monetization_on,
+                                color: Color(0xFFB8860B),
+                                size: 16,
+                              ),
+                              const SizedBox(width: 3),
+                              Text(
+                                '$monedas',
+                                style: const TextStyle(
+                                  color: Color(0xFF7B5100),
+                                  fontWeight: FontWeight.bold,
+                                  fontFamily: 'Fredoka',
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ],
                           ),
-                        ),
-                      ],
-                    ),
                   ),
-                );
-              }
-              return const SizedBox.shrink();
+                ),
+              );
             },
           ),
-          // ----------Botón de progreso---------
-          GestureDetector(
-            onTap: () => _irAPantalla(
-              ProgressScreen(
-                coins: MonedasService().obtenerMonedas(),
-                streakDays: 7,
-                recordDays: 15,
+          Center(
+            child: Tooltip(
+              message: 'Mi progreso',
+              child: GestureDetector(
+                onTap: _abrirProgreso,
+                child: Container(
+                  width: 32,
+                  height: 30,
+                  margin: const EdgeInsets.only(right: 2),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(10),
+                    gradient: const LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        Color(0xFF4CC4F0),
+                        Color(0xFF3C9AF8),
+                      ],
+                    ),
+                    border: Border.all(
+                      color: const Color(0xFF126FE0),
+                      width: 1.2,
+                    ),
+                  ),
+                  child: const Icon(
+                    Icons.trending_up_rounded,
+                    color: Colors.white,
+                    size: 18,
+                  ),
+                ),
               ),
             ),
-            child: Container(
-              width: 40,
-              height: 30,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(20),
-                gradient: const LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    Color.fromARGB(255, 76, 196, 240),
-                    Color.fromARGB(255, 60, 154, 248)
-                  ],
-                ),
-                boxShadow: const [
-                  BoxShadow(
-                    color: Color.fromARGB(255, 18, 111, 224),
-                    offset: Offset(0, 5),
-                    blurRadius: 0,
-                  ),
-                  BoxShadow(
-                    color: Colors.black26,
-                    offset: Offset(0, 6),
-                    blurRadius: 8,
-                  ),
-                ],
-              ),
-              child: const Center(
+          ),
+          Tooltip(
+            message: 'Mi perfil',
+            child: GestureDetector(
+              onTap: () => _irAPantalla(const PerfilScreen()),
+              child: const SizedBox(
+                width: 34,
+                height: 32,
                 child: Icon(
-                  Icons.trending_up_rounded,
+                  Icons.person_rounded,
                   color: Colors.white,
-                  size: 28,
+                  size: 22,
                 ),
               ),
             ),
           ),
-          // ----------Botón de perfil---------
-          IconButton(
-            icon: const Icon(Icons.person_sharp, color: Colors.white),
-            onPressed: () => _irAPantalla(const PerfilScreen()),
-            tooltip: 'Mi perfil',
-          ),
+          const SizedBox(width: 6),
         ],
         backgroundColor: AppTheme.verde,
       ),
@@ -764,7 +803,8 @@ class _MenuPrincipalState extends State<MenuPrincipal> {
                       subtitulo: 'Descubre y aprende',
                       color: const Color(0xFF43A047),
                       color2: const Color(0xFF66BB6A),
-                      iconImage: 'assets/images/icons/icono_aprendizaje.png',
+                      icon: Icons.menu_book_rounded,
+                      iconImage: 'assets/images/icons/icono_aula_lombriz.png',
                       index: 0,
                       opciones: [
                         _buildOpcion(
@@ -1141,14 +1181,57 @@ class _MenuPrincipalState extends State<MenuPrincipal> {
                         ),
                       ],
                     ),
+                    // ==================== MIS JUEGOS ====================
+                    _buildCategoria(
+                      titulo: 'Mis juegos',
+                      subtitulo: 'Juega y aprende',
+                      color: const Color(0xFFFFA726),
+                      color2: const Color(0xFFFFCA28),
+                      icon: Icons.sports_esports_rounded,
+                      iconImage: 'assets/images/icons/icono_juegos_lombriz.png',
+                      index: 1,
+                      opciones: [
+                        _buildOpcion(
+                          'Clasifica residuos',
+                          'Aprende a separar los residuos',
+                          '♻️',
+                          () => _irAPantalla(const ClasificaResiduosScreen()),
+                          color: const Color(0xFFFFA726),
+                        ),
+                        _buildOpcion(
+                          'Bocados Sorpresa',
+                          'Arrastra a la lombriz para comer los alimentos buenos',
+                          '🍎',
+                          () =>
+                              _irAPantalla(const SelectorNivelAlimentaScreen()),
+                          color: const Color(0xFFFFA726),
+                        ),
+                        _buildOpcion(
+                          'Lluvia Deliciosa',
+                          'Atrapa la comida que cae y evita los aparatos electrónicos',
+                          '🧺',
+                          () =>
+                              _irAPantalla(const SelectorNivelCayendoScreen()),
+                          color: const Color(0xFFFFA726),
+                        ),
+                        _buildOpcion(
+                          'Memorama ecológico',
+                          'Encuentra las parejas',
+                          '🃏',
+                          () => _irAPantalla(const MemoramaScreen()),
+                          color: const Color(0xFFFFA726),
+                        ),
+                      ],
+                    ),
                     // ==================== MI NEGOCIO REAL ====================
                     _buildCategoria(
                       titulo: 'Mi negocio real',
                       subtitulo: 'Vende y capacita',
                       color: const Color(0xFFFF7043),
                       color2: const Color(0xFFFF8A65),
-                      iconImage: 'assets/images/icons/icono_negocio.png',
-                      index: 3,
+                      icon: Icons.storefront_rounded,
+                      iconImage: 'assets/images/icons/icono_negocio_lombriz.png',
+                      index: 2,
                       opciones: [
                         _buildOpcion(
                           'Matemáticas de negocios',
@@ -1183,48 +1266,6 @@ class _MenuPrincipalState extends State<MenuPrincipal> {
                           () => _irAPantalla(const AccesoriosScreen()),
                           color: const Color(0xFFFF7043),
                         ),
-                      ],
-                    ),
-                    // ==================== MIS JUEGOS ====================
-                    _buildCategoria(
-                      titulo: 'Mis juegos',
-                      subtitulo: 'Juega y aprende',
-                      color: const Color(0xFFFFA726),
-                      color2: const Color(0xFFFFCA28),
-                      iconImage: 'assets/images/icons/icono_composta.png',
-                      index: 1,
-                      opciones: [
-                        _buildOpcion(
-                          'Clasifica residuos',
-                          'Aprende a separar los residuos',
-                          '♻️',
-                          () => _irAPantalla(const ClasificaResiduosScreen()),
-                          color: const Color(0xFFFFA726),
-                        ),
-                        _buildOpcion(
-                          'Bocados Sorpresa',
-                          'Arrastra a la lombriz para comer los alimentos buenos',
-                          '🍎',
-                          () =>
-                              _irAPantalla(const SelectorNivelAlimentaScreen()),
-                          color: const Color(0xFFFFA726),
-                        ),
-                        _buildOpcion(
-                          'Lluvia Deliciosa',
-                          'Atrapa la comida que cae y evita los aparatos electrónicos',
-                          '🧺',
-                          () =>
-                              _irAPantalla(const SelectorNivelCayendoScreen()),
-                          color: const Color(0xFFFFA726),
-                        ),
-                        _buildOpcion(
-                          'Memorama ecológico',
-                          'Encuentra las parejas',
-                          '🃏',
-                          () => _irAPantalla(const MemoramaScreen()),
-                          color: const Color(0xFFFFA726),
-                        ),
-                        // Puedes agregar más juegos aquí si quieres
                       ],
                     ),
                     const SizedBox(height: 12),
