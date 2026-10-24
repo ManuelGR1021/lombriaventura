@@ -33,5 +33,11 @@ class SoundService {
 
   Future<void> logroDesbloqueado() => _reproducir('Logro_desbloqueado.mp3');
 
+  /// Whoosh corto al abrir o cerrar una categoría del menú.
+  Future<void> transicionMenu() => _reproducir('ui_transicion.mp3');
+
+  /// Clic corto al elegir una opción dentro de una categoría.
+  Future<void> clickUi() => _reproducir('ui_click.mp3');
+
   void dispose() => _player.dispose();
 }

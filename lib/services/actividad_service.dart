@@ -38,6 +38,40 @@ class ActividadService {
     return racha;
   }
 
+  /// Récord histórico de días consecutivos.
+  ///
+  /// Recorre las fechas guardadas en Hive (`actividad`) y devuelve la racha
+  /// más larga. Si todavía no hay días registrados, devuelve 0.
+  int obtenerRecordRacha() {
+    final box = Hive.box(_boxName);
+    final dias = <DateTime>{};
+
+    for (final key in box.keys) {
+      if (box.get(key) != true) continue;
+      final parsed = DateTime.tryParse(key.toString());
+      if (parsed == null) continue;
+      dias.add(DateTime(parsed.year, parsed.month, parsed.day));
+    }
+
+    if (dias.isEmpty) return 0;
+
+    final orden = dias.toList()..sort();
+    var mejor = 1;
+    var actual = 1;
+    for (var i = 1; i < orden.length; i++) {
+      final diferencia = orden[i].difference(orden[i - 1]).inDays;
+      if (diferencia == 1) {
+        actual++;
+        if (actual > mejor) mejor = actual;
+      } else if (diferencia > 1) {
+        actual = 1;
+      }
+    }
+
+    final rachaActual = obtenerRacha();
+    return mejor > rachaActual ? mejor : rachaActual;
+  }
+
   // Obtener fase de Max según días activos
   Map<String, dynamic> obtenerFaseMax() {
     final dias = obtenerDiasActivos();

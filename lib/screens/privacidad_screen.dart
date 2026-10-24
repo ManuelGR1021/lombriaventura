@@ -94,6 +94,7 @@ class _PrivacidadScreenState extends State<PrivacidadScreen> {
                     '• Nombre de usuario\n'
                     '• Edad\n'
                     '• Ciudad de residencia\n'
+                    '• Persona especial (mamá, papá, abuela, abuelo u otra persona)\n'
                     '• Género (Lola/Lalo)\n'
                     '• Respuesta de seguridad (para recuperar cuenta)',
                     style: TextStyle(fontSize: 14),

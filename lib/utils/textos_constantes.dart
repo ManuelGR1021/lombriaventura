@@ -11,6 +11,7 @@ Lombriaventura es una aplicación educativa diseñada para niños y jóvenes. No
 - Nombre completo
 - Edad
 - Ciudad
+- Persona especial (mamá, papá, abuela, abuelo u otra persona)
 - Correo electrónico (generado automáticamente)
 - Fotos del diario "Mi Composta" (opcionales)
 

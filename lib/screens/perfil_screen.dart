@@ -17,6 +17,7 @@ class _PerfilScreenState extends State<PerfilScreen> {
   String _nombreCompleto = '';
   String _edad = 'No especificada';
   String _ciudad = 'No especificada';
+  String _personaEspecial = 'No especificada';
   String _fechaRegistro = '';
   String? _fotoPerfil;
   bool _isLoading = true;
@@ -58,12 +59,18 @@ class _PerfilScreenState extends State<PerfilScreen> {
       if (ciudadTemp.isEmpty && usuarioData != null) {
         ciudadTemp = usuarioData['ciudad']?.toString() ?? '';
       }
+
+      String personaTemp = configBox.get('usuario_persona_especial', defaultValue: '');
+      if (personaTemp.isEmpty && usuarioData != null) {
+        personaTemp = usuarioData['persona_especial']?.toString() ?? '';
+      }
       
       setState(() {
         _usuario = usuarioActual;
         _nombreCompleto = configBox.get('usuario_nombre', defaultValue: 'Lombrikid');
         _edad = edadTemp.isNotEmpty ? edadTemp : 'No especificada';
         _ciudad = ciudadTemp.isNotEmpty ? ciudadTemp : 'No especificada';
+        _personaEspecial = personaTemp.isNotEmpty ? personaTemp : 'No especificada';
         _fechaRegistro = configBox.get('usuario_fecha_registro', defaultValue: DateTime.now().toIso8601String());
         _fotoPerfil = configBox.get('usuario_foto_perfil');
         _isLoading = false;
@@ -389,6 +396,14 @@ class _PerfilScreenState extends State<PerfilScreen> {
                           leading: const Icon(Icons.location_city, color: AppTheme.verde),
                           title: const Text('Ciudad'),
                           subtitle: Text(_ciudad),
+                        ),
+                      ),
+
+                      Card(
+                        child: ListTile(
+                          leading: const Icon(Icons.favorite, color: AppTheme.verde),
+                          title: const Text('Persona especial'),
+                          subtitle: Text(_personaEspecial),
                         ),
                       ),
                       

@@ -22,6 +22,7 @@ class _RegistroScreenState extends State<RegistroScreen> {
   final TextEditingController _confirmarController = TextEditingController();
   final TextEditingController _edadController = TextEditingController();
   final TextEditingController _ciudadController = TextEditingController();
+  final TextEditingController _personaEspecialController = TextEditingController();
   final TextEditingController _respuestaSeguridadController = TextEditingController();
   
   String? _preguntaSeguridad;
@@ -94,6 +95,10 @@ Future<void> _registrarUsuario() async {
     setState(() => _errorMessage = 'Ingresa tu ciudad');
     return;
   }
+  if (_personaEspecialController.text.trim().isEmpty) {
+    setState(() => _errorMessage = 'Escribe el nombre de tu persona especial');
+    return;
+  }
   if (_preguntaSeguridad == null) {
     setState(() => _errorMessage = 'Elige una pregunta de seguridad');
     return;
@@ -120,6 +125,7 @@ Future<void> _registrarUsuario() async {
     await configBox.put('usuario_password', _passwordController.text.trim());
     await configBox.put('usuario_edad', _edadController.text.trim());
     await configBox.put('usuario_ciudad', _ciudadController.text.trim());
+    await configBox.put('usuario_persona_especial', _personaEspecialController.text.trim());
     await configBox.put('usuario_pregunta_seguridad', _preguntaSeguridad);
     await configBox.put('usuario_respuesta_seguridad', _respuestaSeguridadController.text.trim());
     await configBox.put('usuario_fecha_registro', DateTime.now().toIso8601String());
@@ -147,6 +153,7 @@ Future<void> _registrarUsuario() async {
           'respuesta_seguridad': _respuestaSeguridadController.text.trim(),
           'edad': int.tryParse(_edadController.text.trim()),
           'ciudad': _ciudadController.text.trim(),
+          'persona_especial': _personaEspecialController.text.trim(),
           'genero': null,
           'fecha_registro': DateTime.now().toIso8601String(),
         };
@@ -166,6 +173,7 @@ Future<void> _registrarUsuario() async {
         'respuesta_seguridad': _respuestaSeguridadController.text.trim(),
         'edad': int.tryParse(_edadController.text.trim()),
         'ciudad': _ciudadController.text.trim(),
+        'persona_especial': _personaEspecialController.text.trim(),
         'genero': null,
         'fecha_registro': DateTime.now().toIso8601String(),
       });
@@ -187,6 +195,7 @@ Future<void> _registrarUsuario() async {
         respuestaSeguridad: _respuestaSeguridadController.text.trim(),
         edad: int.tryParse(_edadController.text.trim()),
         ciudad: _ciudadController.text.trim(),
+        personaEspecial: _personaEspecialController.text.trim(),
         genero: null,
       );
 
@@ -202,6 +211,7 @@ Future<void> _registrarUsuario() async {
           'respuestaSeguridad': _respuestaSeguridadController.text.trim(),
           'edad': int.tryParse(_edadController.text.trim()),
           'ciudad': _ciudadController.text.trim(),
+          'personaEspecial': _personaEspecialController.text.trim(),
           'genero': null,
         });
         print('💾 Usuario guardado en pendientes (API falló)');
@@ -216,6 +226,7 @@ Future<void> _registrarUsuario() async {
         'respuestaSeguridad': _respuestaSeguridadController.text.trim(),
         'edad': int.tryParse(_edadController.text.trim()),
         'ciudad': _ciudadController.text.trim(),
+        'personaEspecial': _personaEspecialController.text.trim(),
         'genero': null,
       });
       print('💾 Usuario guardado en pendientes (sin internet)');
@@ -369,6 +380,21 @@ Future<void> _registrarUsuario() async {
                   decoration: InputDecoration(
                     labelText: 'Ciudad',
                     prefixIcon: const Icon(Icons.location_city, color: AppTheme.verde),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                    filled: true,
+                    fillColor: Colors.white,
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                TextField(
+                  controller: _personaEspecialController,
+                  textCapitalization: TextCapitalization.sentences,
+                  decoration: InputDecoration(
+                    labelText: '¿Quién es tu persona especial?',
+                    hintText: 'Ej. mamá, papá, abuela, abuelo…',
+                    floatingLabelBehavior: FloatingLabelBehavior.always,
+                    prefixIcon: const Icon(Icons.favorite, color: AppTheme.verde),
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                     filled: true,
                     fillColor: Colors.white,

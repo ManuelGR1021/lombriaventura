@@ -64,7 +64,14 @@ class _LoginScreenState extends State<LoginScreen> {
       final usuariosResult = await ApiService().obtenerTodosUsuarios();
       if (usuariosResult.ok && usuariosResult.data != null) {
         final usuariosBox = await Hive.openBox('usuarios');
-        await usuariosBox.put('lista', usuariosResult.data!.map((u) => u.toJson()).toList());
+        final listaLocal = usuariosBox.get('lista', defaultValue: <Map<String, dynamic>>[]);
+        await usuariosBox.put(
+          'lista',
+          syncService.conservarPersonaEspecial(
+            listaLocal,
+            usuariosResult.data!.map((u) => u.toJson()).toList(),
+          ),
+        );
         print('✅ Usuarios descargados: ${usuariosResult.data!.length}');
       }
 
@@ -144,6 +151,10 @@ class _LoginScreenState extends State<LoginScreen> {
           await box.put('usuario_actual', usuarioEncontrado.nombreUsuario);
           await box.put('usuario_nombre', usuarioEncontrado.nombre);
           await box.put('usuario_password', passwordIngresada);
+          if (usuarioEncontrado.personaEspecial != null &&
+              usuarioEncontrado.personaEspecial!.trim().isNotEmpty) {
+            await box.put('usuario_persona_especial', usuarioEncontrado.personaEspecial);
+          }
           await box.put('login_exitoso', true);
           _irAlMenu();
           return;
@@ -175,6 +186,10 @@ class _LoginScreenState extends State<LoginScreen> {
             await box.put('usuario_actual', usuario.nombreUsuario);
             await box.put('usuario_nombre', usuario.nombre);
             await box.put('usuario_password', passwordIngresada);
+            if (usuario.personaEspecial != null &&
+                usuario.personaEspecial!.trim().isNotEmpty) {
+              await box.put('usuario_persona_especial', usuario.personaEspecial);
+            }
             await box.put('login_exitoso', true);
 
             // ✅ Actualizar lista de usuarios en Hive

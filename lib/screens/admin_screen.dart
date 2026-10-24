@@ -31,6 +31,7 @@ class _AdminScreenState extends State<AdminScreen> {
         'nombre': configBox.get('usuario_nombre', defaultValue: 'No registrado'),
         'edad': configBox.get('usuario_edad', defaultValue: '?'),
         'ciudad': configBox.get('usuario_ciudad', defaultValue: '?'),
+        'persona_especial': configBox.get('usuario_persona_especial', defaultValue: '?'),
         'fecha': configBox.get('usuario_fecha_registro', defaultValue: ''),
       };
       _capacitados = List<Map<String, dynamic>>.from(

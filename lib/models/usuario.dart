@@ -7,6 +7,7 @@ class Usuario {
   final String password; 
   final int? edad;
   final String? ciudad;
+  final String? personaEspecial;
   final String? genero;
 
   Usuario({
@@ -17,6 +18,7 @@ class Usuario {
     required this.password, 
     this.edad,
     this.ciudad,
+    this.personaEspecial,
     this.genero,
   });
 
@@ -29,6 +31,7 @@ class Usuario {
       password: json['password'] ?? '', 
       edad: json['edad'],
       ciudad: json['ciudad'],
+      personaEspecial: json['persona_especial'] ?? json['personaEspecial'],
       genero: json['genero'],
     );
   }
@@ -42,6 +45,7 @@ class Usuario {
       'password': password, 
       if (edad != null) 'edad': edad,
       if (ciudad != null) 'ciudad': ciudad,
+      if (personaEspecial != null) 'persona_especial': personaEspecial,
       if (genero != null) 'genero': genero,
     };
   }

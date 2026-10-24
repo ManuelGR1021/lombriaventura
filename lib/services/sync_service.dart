@@ -44,12 +44,50 @@ class SyncService {
       final result = await ApiService().obtenerTodosUsuarios();
       if (result.ok && result.data != null) {
         final box = await Hive.openBox('usuarios');
-        await box.put('lista', result.data!.map((u) => u.toJson()).toList());
+        final listaLocal = box.get('lista', defaultValue: <Map<String, dynamic>>[]);
+        await box.put(
+          'lista',
+          conservarPersonaEspecial(
+            listaLocal,
+            result.data!.map((u) => u.toJson()).toList(),
+          ),
+        );
         print('✅ Usuarios descargados: ${result.data!.length}');
       }
     } catch (e) {
       print('❌ Error descargando usuarios: $e');
     }
+  }
+
+  // La API remota aún no guarda persona especial. Conserva el valor local.
+  List<Map<String, dynamic>> conservarPersonaEspecial(
+    dynamic listaLocal,
+    List<Map<String, dynamic>> remotos,
+  ) {
+    final previos = <String, String>{};
+    if (listaLocal is List) {
+      for (final item in listaLocal) {
+        if (item is! Map) continue;
+        final nombre = item['nombre_usuario']?.toString();
+        final persona = item['persona_especial']?.toString().trim();
+        if (nombre != null &&
+            nombre.isNotEmpty &&
+            persona != null &&
+            persona.isNotEmpty) {
+          previos[nombre] = persona;
+        }
+      }
+    }
+
+    return remotos.map((remoto) {
+      final json = Map<String, dynamic>.from(remoto);
+      final actual = json['persona_especial']?.toString().trim() ?? '';
+      final guardada = previos[json['nombre_usuario']?.toString()];
+      if (actual.isEmpty && guardada != null) {
+        json['persona_especial'] = guardada;
+      }
+      return json;
+    }).toList();
   }
 
   Future<void> _descargarDiario() async {
@@ -155,6 +193,7 @@ class SyncService {
           respuestaSeguridad: usuario['respuestaSeguridad'] ?? '',
           edad: usuario['edad'],
           ciudad: usuario['ciudad'],
+          personaEspecial: usuario['personaEspecial'],
           genero: usuario['genero'],
         );
         if (result.ok) {
@@ -348,6 +387,7 @@ class SyncService {
       'respuestaSeguridad': usuario['respuestaSeguridad'] ?? '',
       'edad': usuario['edad'],
       'ciudad': usuario['ciudad'],
+      'personaEspecial': usuario['personaEspecial'],
       'genero': usuario['genero'],
     });
     await box.put('usuarios', pendientes);

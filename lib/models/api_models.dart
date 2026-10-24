@@ -11,6 +11,7 @@ class Usuario {
   final String respuestaSeguridad;
   final int? edad;
   final String? ciudad;
+  final String? personaEspecial;
   final String? genero;
 
   Usuario({
@@ -23,6 +24,7 @@ class Usuario {
     required this.respuestaSeguridad,
     this.edad,
     this.ciudad,
+    this.personaEspecial,
     this.genero,
   });
 
@@ -37,6 +39,7 @@ class Usuario {
       respuestaSeguridad: json['respuesta_seguridad'] ?? '',
       edad: json['edad'],
       ciudad: json['ciudad'],
+      personaEspecial: json['persona_especial'] ?? json['personaEspecial'],
       genero: json['genero'],
     );
   }
@@ -52,6 +55,7 @@ class Usuario {
       'respuesta_seguridad': respuestaSeguridad,
       if (edad != null) 'edad': edad,
       if (ciudad != null) 'ciudad': ciudad,
+      if (personaEspecial != null) 'persona_especial': personaEspecial,
       if (genero != null) 'genero': genero,
     };
   }
