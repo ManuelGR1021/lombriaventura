@@ -84,10 +84,10 @@ void main() {
     expect(find.text('Mi negocio real'), findsOneWidget);
 
     final aula = tester.getTopLeft(find.text('LombriAula')).dy;
-    final juegos = tester.getTopLeft(find.text('Mis juegos')).dy;
     final negocio = tester.getTopLeft(find.text('Mi negocio real')).dy;
-    expect(aula, lessThan(juegos));
-    expect(juegos, lessThan(negocio));
+    final juegos = tester.getTopLeft(find.text('Mis juegos')).dy;
+    expect(aula, lessThan(negocio));
+    expect(negocio, lessThan(juegos));
 
     final dinamico = tester.takeException();
     expect(

@@ -1181,48 +1181,6 @@ class _MenuPrincipalState extends State<MenuPrincipal> {
                         ),
                       ],
                     ),
-                    // ==================== MIS JUEGOS ====================
-                    _buildCategoria(
-                      titulo: 'Mis juegos',
-                      subtitulo: 'Juega y aprende',
-                      color: const Color(0xFFFFA726),
-                      color2: const Color(0xFFFFCA28),
-                      icon: Icons.sports_esports_rounded,
-                      iconImage: 'assets/images/icons/icono_juegos_lombriz.png',
-                      index: 1,
-                      opciones: [
-                        _buildOpcion(
-                          'Clasifica residuos',
-                          'Aprende a separar los residuos',
-                          '♻️',
-                          () => _irAPantalla(const ClasificaResiduosScreen()),
-                          color: const Color(0xFFFFA726),
-                        ),
-                        _buildOpcion(
-                          'Bocados Sorpresa',
-                          'Arrastra a la lombriz para comer los alimentos buenos',
-                          '🍎',
-                          () =>
-                              _irAPantalla(const SelectorNivelAlimentaScreen()),
-                          color: const Color(0xFFFFA726),
-                        ),
-                        _buildOpcion(
-                          'Lluvia Deliciosa',
-                          'Atrapa la comida que cae y evita los aparatos electrónicos',
-                          '🧺',
-                          () =>
-                              _irAPantalla(const SelectorNivelCayendoScreen()),
-                          color: const Color(0xFFFFA726),
-                        ),
-                        _buildOpcion(
-                          'Memorama ecológico',
-                          'Encuentra las parejas',
-                          '🃏',
-                          () => _irAPantalla(const MemoramaScreen()),
-                          color: const Color(0xFFFFA726),
-                        ),
-                      ],
-                    ),
                     // ==================== MI NEGOCIO REAL ====================
                     _buildCategoria(
                       titulo: 'Mi negocio real',
@@ -1231,7 +1189,7 @@ class _MenuPrincipalState extends State<MenuPrincipal> {
                       color2: const Color(0xFFFF8A65),
                       icon: Icons.storefront_rounded,
                       iconImage: 'assets/images/icons/icono_negocio_lombriz.png',
-                      index: 2,
+                      index: 1,
                       opciones: [
                         _buildOpcion(
                           'Matemáticas de negocios',
@@ -1265,6 +1223,48 @@ class _MenuPrincipalState extends State<MenuPrincipal> {
                           '🛍️',
                           () => _irAPantalla(const AccesoriosScreen()),
                           color: const Color(0xFFFF7043),
+                        ),
+                      ],
+                    ),
+                    // ==================== MIS JUEGOS ====================
+                    _buildCategoria(
+                      titulo: 'Mis juegos',
+                      subtitulo: 'Juega y aprende',
+                      color: const Color(0xFFFFA726),
+                      color2: const Color(0xFFFFCA28),
+                      icon: Icons.sports_esports_rounded,
+                      iconImage: 'assets/images/icons/icono_juegos_lombriz.png',
+                      index: 2,
+                      opciones: [
+                        _buildOpcion(
+                          'Clasifica residuos',
+                          'Aprende a separar los residuos',
+                          '♻️',
+                          () => _irAPantalla(const ClasificaResiduosScreen()),
+                          color: const Color(0xFFFFA726),
+                        ),
+                        _buildOpcion(
+                          'Bocados Sorpresa',
+                          'Arrastra a la lombriz para comer los alimentos buenos',
+                          '🍎',
+                          () =>
+                              _irAPantalla(const SelectorNivelAlimentaScreen()),
+                          color: const Color(0xFFFFA726),
+                        ),
+                        _buildOpcion(
+                          'Lluvia Deliciosa',
+                          'Atrapa la comida que cae y evita los aparatos electrónicos',
+                          '🧺',
+                          () =>
+                              _irAPantalla(const SelectorNivelCayendoScreen()),
+                          color: const Color(0xFFFFA726),
+                        ),
+                        _buildOpcion(
+                          'Memorama ecológico',
+                          'Encuentra las parejas',
+                          '🃏',
+                          () => _irAPantalla(const MemoramaScreen()),
+                          color: const Color(0xFFFFA726),
                         ),
                       ],
                     ),
