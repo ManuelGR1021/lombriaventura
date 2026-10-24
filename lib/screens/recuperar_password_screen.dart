@@ -92,6 +92,7 @@ class _RecuperarPasswordScreenState extends State<RecuperarPasswordScreen> {
                 'respuesta_seguridad': user.respuestaSeguridad,
                 'edad': user.edad,
                 'ciudad': user.ciudad,
+                'persona_especial': user.personaEspecial,
                 'genero': user.genero,
                 'fecha_registro': DateTime.now().toIso8601String(),
               };

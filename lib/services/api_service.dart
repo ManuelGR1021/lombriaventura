@@ -55,6 +55,7 @@ class ApiService {
     required String respuestaSeguridad,
     int? edad,
     String? ciudad,
+    String? personaEspecial,
     String? genero,
   }) async {
     try {
@@ -73,6 +74,7 @@ class ApiService {
               'email': email,
               'edad': edad,
               'ciudad': ciudad,
+              'persona_especial': personaEspecial,
               'genero': genero,
               'pregunta_seguridad': preguntaSeguridad,
               'respuesta_seguridad': respuestaSeguridad,
@@ -155,6 +157,7 @@ class ApiService {
                 respuestaSeguridad: usuarioApi.respuestaSeguridad ?? '',
                 edad: usuarioApi.edad,
                 ciudad: usuarioApi.ciudad,
+                personaEspecial: usuarioApi.personaEspecial,
                 genero: usuarioApi.genero,
               ));
             }

@@ -28,6 +28,7 @@ class AuthService {
       final respuestaSeguridad = box.get('usuario_respuesta_seguridad') ?? '';
       final edad = box.get('usuario_edad');
       final ciudad = box.get('usuario_ciudad');
+      final personaEspecial = box.get('usuario_persona_especial');
 
       if (nombreUsuario != null) {
         return Usuario(
@@ -40,6 +41,7 @@ class AuthService {
           respuestaSeguridad: respuestaSeguridad,
           edad: edad != null ? int.tryParse(edad.toString()) : null,
           ciudad: ciudad,
+          personaEspecial: personaEspecial,
         );
       }
       return null;
@@ -60,6 +62,7 @@ class AuthService {
     required String respuestaSeguridad,
     int? edad,
     String? ciudad,
+    String? personaEspecial,
     String? genero,
   }) async {
     try {
@@ -76,6 +79,9 @@ class AuthService {
       await box.put('usuario_respuesta_seguridad', respuestaSeguridad);
       if (edad != null) await box.put('usuario_edad', edad.toString());
       if (ciudad != null) await box.put('usuario_ciudad', ciudad);
+      if (personaEspecial != null) {
+        await box.put('usuario_persona_especial', personaEspecial);
+      }
       await box.put('login_exitoso', true);
 
       final usuario = Usuario(
@@ -88,6 +94,7 @@ class AuthService {
         respuestaSeguridad: respuestaSeguridad,
         edad: edad,
         ciudad: ciudad,
+        personaEspecial: personaEspecial,
         genero: genero,
       );
       _currentUser = usuario;
@@ -104,6 +111,7 @@ class AuthService {
           respuestaSeguridad: respuestaSeguridad,
           edad: edad,
           ciudad: ciudad,
+          personaEspecial: personaEspecial,
           genero: genero,
         );
         if (!result.ok) {
@@ -116,6 +124,7 @@ class AuthService {
             'respuestaSeguridad': respuestaSeguridad,
             'edad': edad,
             'ciudad': ciudad,
+            'personaEspecial': personaEspecial,
             'genero': genero,
           });
         }
@@ -165,6 +174,9 @@ class AuthService {
           await box.put('usuario_respuesta_seguridad', usuario.respuestaSeguridad);
           if (usuario.edad != null) await box.put('usuario_edad', usuario.edad.toString());
           if (usuario.ciudad != null) await box.put('usuario_ciudad', usuario.ciudad);
+          if (usuario.personaEspecial != null) {
+            await box.put('usuario_persona_especial', usuario.personaEspecial);
+          }
           await box.put('login_exitoso', true);
 
           _currentUser = usuario;
@@ -202,6 +214,7 @@ class AuthService {
         respuestaSeguridad: _currentUser!.respuestaSeguridad,
         edad: _currentUser!.edad,
         ciudad: _currentUser!.ciudad,
+        personaEspecial: _currentUser!.personaEspecial,
         genero: _currentUser!.genero,
       );
 
